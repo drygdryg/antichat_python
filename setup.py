@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from io import open
 from setuptools import setup
 
 """
@@ -9,12 +10,21 @@ from setuptools import setup
 
 version = '0.0.1'
 
+with open('README.md', encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name='antichat',
     version=version,
     description='Simple forum.antichat.ru wrapper',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    license='MIT, see LICENSE file',
 
     author='drygdryg',
+    author_email='drygdryg2014@yandex.com',
+    url='https://github.com/drygdryg/antichat_python',
+    download_url='https://github.com/drygdryg/antichat_python/archive/v{}.zip'.format(version),
 
     keywords='wrapper scraper antichat',
 
@@ -29,6 +39,7 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
