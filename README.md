@@ -27,7 +27,7 @@ client.delete_post(post_id=post_id, reason='No hello')
 ```python
 import antichat
 
-threadreader = ThreadReader(thread_id=12345)
+threadreader = antichat.ThreadReader(thread_id=12345)
 
 all_posts = threadreader.read()   # Read all posts sequentially
 first_posts = threadreader.read(limit=20)   # Get only first 20 posts
