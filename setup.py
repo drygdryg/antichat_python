@@ -29,7 +29,7 @@ setup(
     keywords='wrapper scraper antichat',
 
     packages=['antichat'],
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=[
         'requests',
         'beautifulsoup4',
