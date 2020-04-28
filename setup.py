@@ -8,7 +8,7 @@ from setuptools import setup
 :copyright: (c) 2020 drygdryg
 """
 
-version = '0.0.1'
+version = '0.0.2'
 
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
@@ -19,7 +19,7 @@ setup(
     description='Simple forum.antichat.ru wrapper',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    license='MIT, see LICENSE file',
+    license='MIT',
 
     author='drygdryg',
     author_email='drygdryg2014@yandex.com',
@@ -40,9 +40,10 @@ setup(
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.8',
+        'Topic :: Internet :: WWW/HTTP',
+        'Intended Audience :: Developers'
     ]
 )

@@ -9,3 +9,7 @@ class AuthError(AntichatClientError):
 
 class SessionError(AntichatClientError):
     pass
+
+
+class ContentNotFound(AntichatClientError):
+    pass

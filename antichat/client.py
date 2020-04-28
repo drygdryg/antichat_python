@@ -4,7 +4,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from .exceptions import AuthError, SessionError
+from .exceptions import AuthError, SessionError, ContentNotFound
 
 
 def create_soup(html_page):
@@ -19,6 +19,11 @@ class ThreadReader():
     def __parse_page(self, html):
         soup = create_soup(html)
         posts = []
+        if not soup.find('ol', id='messageList'):
+            error_message = soup.find(
+                'div', class_='errorPanel'
+            ).get_text().strip()
+            raise ContentNotFound(error_message)
         for post_tag in soup.find('ol', id='messageList').findChildren('li', recursive=False):
             # Extract Antichat post ID (thread-independent)
             post_id = int(post_tag['id'].split('-')[-1])
