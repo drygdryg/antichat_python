@@ -10,4 +10,4 @@ from .client import ThreadReader
 
 
 __author__ = 'drygdryg'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
