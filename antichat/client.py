@@ -45,9 +45,9 @@ class ThreadReader():
             # Remove from it unnecessary quotes
             for s in content.find_all('div', class_='bbCodeBlock bbCodeQuote'):
                 s.extract()
-            # Replace :D smiles with text
-            for s in content.find_all('img', class_='mceSmilieSprite mceSmilie8'):
-                s.replace_with(':D')
+            # Replace smiles with their text alternative
+            for s in content.find_all('img', class_=re.compile(r'mceSmilieSprite mceSmilie\d{1,2}')):
+                s.replace_with(s['alt'])
             # Then extract text
             text = content.get_text().strip()
             posts.append({
