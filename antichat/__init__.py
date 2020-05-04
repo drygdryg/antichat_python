@@ -6,7 +6,6 @@
 """
 from .exceptions import *
 from .client import Client
-from .client import ThreadReader
 
 
 __author__ = 'drygdryg'

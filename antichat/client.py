@@ -12,9 +12,10 @@ def create_soup(html_page):
 
 
 class ThreadReader():
-    def __init__(self, thread_id):
-        self.server = 'https://forum.antichat.ru'
-        self.thread_id = thread_id
+    def __init__(self, thread, session=None, server=None):
+        self.server = server or 'https://forum.antichat.ru'
+        self.thread = thread
+        self.http = session or requests.Session()
 
     def __parse_page(self, html):
         soup = create_soup(html)
@@ -61,7 +62,7 @@ class ThreadReader():
         return posts
 
     def read_page(self, page):
-        html = requests.get(f'{self.server}/threads/{self.thread_id}/page-{page}').text
+        html = self.http.get(f'{self.server}/threads/{self.thread}/page-{page}').text
         return self.__parse_page(html)
 
     def read(self, start_post=None, limit=None, offset=None):
@@ -70,10 +71,10 @@ class ThreadReader():
 
         if start_post is not None:
             url = f'{self.server}/posts/{start_post}'
-            r = requests.get(url)
+            r = self.http.get(url)
             if 'page' in r.url:
                 match = re.search(
-                    f'{self.server}/threads/{self.thread_id}/' + r'page-(\d+)',
+                    f'{self.server}/threads/{self.thread}/' + r'page-(\d+)',
                     r.url
                 )
                 if match:
@@ -91,9 +92,9 @@ class ThreadReader():
             posts = posts[startindex:]
             page += 1
             while len(posts) < limit:
-                r = requests.get(f'{self.server}/threads/{self.thread_id}/page-{page}')
+                r = self.http.get(f'{self.server}/threads/{self.thread}/page-{page}')
                 curr_page = int(re.search(
-                    f'{self.server}/threads/{self.thread_id}/' + r'page-(\d+)',
+                    f'{self.server}/threads/{self.thread}/' + r'page-(\d+)',
                     r.url).group(1)
                 )
                 # Check if we have reached the end
@@ -103,12 +104,12 @@ class ThreadReader():
                 page += 1
         elif offset is not None:
             start_page = offset // 20 + 1
-            url = f'{self.server}/threads/{self.thread_id}/page-{start_page}'
-            r = requests.get(url)
+            url = f'{self.server}/threads/{self.thread}/page-{start_page}'
+            r = self.http.get(url)
             if 'page' in r.url:
                 page = int(
                     re.search(
-                        f'{self.server}/threads/{self.thread_id}/' + r'page-(\d+)',
+                        f'{self.server}/threads/{self.thread}/' + r'page-(\d+)',
                         r.url
                     ).group(1)
                 )
@@ -118,10 +119,10 @@ class ThreadReader():
             if start_page == page:
                 page += 1
                 while len(posts) < limit:
-                    r = requests.get(f'{self.server}/threads/{self.thread_id}/page-{page}')
+                    r = self.http.get(f'{self.server}/threads/{self.thread}/page-{page}')
                     curr_page = int(
                         re.search(
-                            f'{self.server}/threads/{self.thread_id}/' + r'page-(\d+)',
+                            f'{self.server}/threads/{self.thread}/' + r'page-(\d+)',
                             r.url
                         ).group(1))
                     # Check if we have reached the end
@@ -133,10 +134,10 @@ class ThreadReader():
             page = 1
             posts = []
             while len(posts) < limit:
-                r = requests.get(f'{self.server}/threads/{self.thread_id}/page-{page}')
+                r = self.http.get(f'{self.server}/threads/{self.thread}/page-{page}')
                 curr_page = int(
                     re.search(
-                        f'{self.server}/threads/{self.thread_id}/' + r'page-(\d+)',
+                        f'{self.server}/threads/{self.thread}/' + r'page-(\d+)',
                         r.url
                     ).group(1)
                 )
@@ -159,12 +160,12 @@ class Client():
         session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)\
         AppleWebKit/537.36 (KHTML, like Gecko)\
         Chrome/81.0.4044.122 Safari/537.36'
-        self.session = session
+        self.http = session
         self.username = username
         self.password = password
 
     def auth(self):
-        self.session.post(
+        self.http.post(
             f'{self.server}/login/login',
             data={
                 'login': self.username,
@@ -173,27 +174,27 @@ class Client():
                 'remember': 1,
             }
         )
-        if self.session.cookies.get('anti_logged_in') != '1':
+        if self.http.cookies.get('anti_logged_in') != '1':
             raise AuthError('Invalid username or password')
 
     def logout(self):
-        if self.session.cookies.get('anti_logged_in') != '1':
+        if self.http.cookies.get('anti_logged_in') != '1':
             raise SessionError('You are not logged in')
         # Getting necessary tokens and hashes
-        r = self.session.get(f'{self.server}')
+        r = self.http.get(f'{self.server}')
         soup = create_soup(r.text)
         xfToken = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
         # Logging out
-        self.session.get(
+        self.http.get(
             f'{self.server}/logout/',
             params={'_xfToken': xfToken}
         )
 
     def make_post(self, thread, message):
-        if self.session.cookies.get('anti_logged_in') != '1':
+        if self.http.cookies.get('anti_logged_in') != '1':
             raise SessionError('You are not logged in')
         # Getting necessary tokens and hashes
-        r = self.session.get(f'{self.server}/threads/{thread}/page-1')
+        r = self.http.get(f'{self.server}/threads/{thread}/page-1')
         soup = create_soup(r.text)
         xfToken = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
         attachment_hash = soup.find(
@@ -202,7 +203,7 @@ class Client():
         )['value']
         # Posting the message
         url = f'{self.server}/threads/{thread}/add-reply'
-        r = self.session.post(
+        r = self.http.post(
             url,
             data={
                 'message_html': '<p>{}</p>'.format(message),
@@ -228,15 +229,15 @@ class Client():
             return False
 
     def delete_post(self, post_id, reason=None):
-        if self.session.cookies.get('anti_logged_in') != '1':
+        if self.http.cookies.get('anti_logged_in') != '1':
             raise SessionError('You are not logged in')
         # Getting necessary tokens and hashes
-        r = self.session.get(f'{self.server}/posts/{post_id}/')
+        r = self.http.get(f'{self.server}/posts/{post_id}/')
         soup = create_soup(r.text)
         xfToken = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
         # Deleting the post
         url = f'{self.server}/posts/{post_id}/delete'
-        r = self.session.post(
+        r = self.http.post(
             url,
             data={
                 'reason': reason,
@@ -253,3 +254,9 @@ class Client():
             return True
         else:
             return False
+
+    def get_reader(self, thread):
+        """Returns Antichat thread reader
+        @thread — Antichat thread ID
+        """
+        return ThreadReader(thread, self.http, self.server)
