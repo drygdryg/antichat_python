@@ -21,9 +21,7 @@ class ThreadReader():
         soup = create_soup(html)
         posts = []
         if not soup.find('ol', id='messageList'):
-            error_message = soup.find(
-                'div', class_='errorPanel'
-            ).get_text().strip()
+            error_message = (soup.find('div', class_='errorPanel') or soup.find('div', class_='errorOverlay')).get_text().strip()
             raise ContentNotFound(error_message)
         for post_tag in soup.find('ol', id='messageList').findChildren('li', recursive=False):
             # Extract Antichat post ID (thread-independent)
