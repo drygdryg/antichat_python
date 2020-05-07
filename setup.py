@@ -8,7 +8,7 @@ from setuptools import setup
 :copyright: (c) 2020 drygdryg
 """
 
-version = '0.0.5'
+version = '0.0.6'
 
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
