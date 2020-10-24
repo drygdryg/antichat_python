@@ -27,13 +27,16 @@ class ThreadReader():
             # Extract Antichat post ID (thread-independent)
             post_id = int(post_tag['id'].split('-')[-1])
             # Extract Antichat member ID
-            poster_id = int(post_tag.find(
-                'div',
-                class_='messageUserInfo'
-            ).find(
-                'div',
-                class_='uix_userTextInner'
-            ).a['href'].split('/')[-2])
+            try:
+                poster_id = int(post_tag.find(
+                    'div',
+                    class_='messageUserInfo'
+                ).find(
+                    'div',
+                    class_='uix_userTextInner'
+                ).a['href'].split('/')[-2])
+            except (ValueError, KeyError):
+                poster_id = None
             # Extract poster nick
             poster_nick = post_tag['data-author']
             # Find message text tag
