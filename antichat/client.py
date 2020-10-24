@@ -11,7 +11,7 @@ def create_soup(html_page):
     return BeautifulSoup(html_page, 'lxml')
 
 
-class ThreadReader():
+class ThreadReader:
     def __init__(self, thread, session=None, server=None):
         self.server = server or 'https://forum.antichat.ru'
         self.thread = thread
@@ -21,7 +21,8 @@ class ThreadReader():
         soup = create_soup(html)
         posts = []
         if not soup.find('ol', id='messageList'):
-            error_message = (soup.find('div', class_='errorPanel') or soup.find('div', class_='errorOverlay')).get_text().strip()
+            error_message = (soup.find('div', class_='errorPanel') or
+                             soup.find('div', class_='errorOverlay')).get_text().strip()
             raise ContentNotFound(error_message)
         for post_tag in soup.find('ol', id='messageList').findChildren('li', recursive=False):
             # Extract Antichat post ID (thread-independent)
@@ -85,12 +86,12 @@ class ThreadReader():
             else:
                 page = 1
             posts = self.__parse_page(r.text)
-            startindex = 0
+            start_index = 0
             for post in posts:
                 if post['id'] == start_post:
                     break
-                startindex += 1
-            posts = posts[startindex:]
+                start_index += 1
+            posts = posts[start_index:]
             page += 1
             while len(posts) < limit:
                 r = self.http.get(f'{self.server}/threads/{self.thread}/page-{page}')
@@ -154,7 +155,7 @@ class ThreadReader():
         return posts
 
 
-class Client():
+class Client:
     def __init__(self, username, password):
         self.server = 'https://forum.antichat.ru'
         session = requests.Session()
@@ -184,11 +185,11 @@ class Client():
         # Getting necessary tokens and hashes
         r = self.http.get(f'{self.server}')
         soup = create_soup(r.text)
-        xfToken = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
+        xf_token = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
         # Logging out
         self.http.get(
             f'{self.server}/logout/',
-            params={'_xfToken': xfToken}
+            params={'_xfToken': xf_token}
         )
 
     def make_post(self, thread, message):
@@ -197,7 +198,7 @@ class Client():
         # Getting necessary tokens and hashes
         r = self.http.get(f'{self.server}/threads/{thread}/page-1')
         soup = create_soup(r.text)
-        xfToken = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
+        xf_token = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
         attachment_hash = soup.find(
             'input',
             attrs={'name': 'attachment_hash', 'type': 'hidden'}
@@ -208,7 +209,7 @@ class Client():
             url,
             data={
                 'message_html': '<p>{}</p>'.format(message),
-                '_xfToken': xfToken,
+                '_xfToken': xf_token,
                 'attachment_hash': attachment_hash,
                 '_xfNoRedirect': 1,
                 '_xfResponseType': 'json'
@@ -218,7 +219,7 @@ class Client():
         if ('_redirectMessage' in result) and\
            (result['_redirectMessage'] == 'Your message has been posted.'):
             match = re.match(
-                r'https:\/\/forum.antichat\.ru\/posts\/(\d+)',
+                r'https://forum.antichat\.ru/posts/(\d+)',
                 result['_redirectTarget']
             )
             if match is not None:
@@ -235,7 +236,7 @@ class Client():
         # Getting necessary tokens and hashes
         r = self.http.get(f'{self.server}/posts/{post_id}/')
         soup = create_soup(r.text)
-        xfToken = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
+        xf_token = soup.find('input', attrs={'name': '_xfToken', 'type': 'hidden'})['value']
         # Deleting the post
         url = f'{self.server}/posts/{post_id}/delete'
         r = self.http.post(
@@ -244,7 +245,7 @@ class Client():
                 'reason': reason,
                 'hard_delete': 0,
                 '_xfConfirm': 1,
-                '_xfToken': xfToken,
+                '_xfToken': xf_token,
                 '_xfNoRedirect': 1,
                 '_xfResponseType': 'json'
             }
